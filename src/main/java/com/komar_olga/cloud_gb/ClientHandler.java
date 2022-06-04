@@ -40,17 +40,19 @@ public class ClientHandler extends ChannelInboundHandlerAdapter {
                             FileMessage fm = new FileMessage(Paths.get("server_storage/" + fr.getFileName()), "download");
                             ctx.writeAndFlush(fm);
                         }
-                        //if (fr.getActionPoint().startsWith("rename")) {
-                            Path sourcePath=null,destinationPath;
+                        // todo не верно , нужно переделать
+                        if (fr.getActionPoint().startsWith("rename")) {
+                            Path sourcePath = null, destinationPath;
                             if (fr.getActionPoint().equals("rename_first")) {
                                 sourcePath = Paths.get("server_storage/" + fr.getFileName());
                             }
-                            if(fr.getActionPoint().equals("rename_second")){
+                            if (fr.getActionPoint().equals("rename_second")) {
                                 destinationPath = Paths.get("server_storage/" + fr.getFileName());
                                 System.out.println(sourcePath.getFileName() + "->" + destinationPath.getFileName());
                                 Files.move(sourcePath, destinationPath);
                             }
-                       // }
+                            // }
+                        }
                     }
                 }
             }
