@@ -24,9 +24,8 @@ public class ClientHandler extends ChannelInboundHandlerAdapter {
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
 
         if (msg instanceof FileRequest) {
+            Path sourcePath = null, destinationPath=null;
             FileRequest fr = (FileRequest) msg;
-//            System.out.println(fr.getFileName());
-//            System.out.println(fr.getActionPoint());
             if (fr.getActionPoint().equals("list")) {
                 ctx.writeAndFlush(new FileList("server_storage/"));
             } else {
@@ -42,15 +41,20 @@ public class ClientHandler extends ChannelInboundHandlerAdapter {
                         }
                         // todo не верно , нужно переделать
                         if (fr.getActionPoint().startsWith("rename")) {
-                            Path sourcePath = null, destinationPath;
-                            if (fr.getActionPoint().equals("rename_first")) {
-                                sourcePath = Paths.get("server_storage/" + fr.getFileName());
-                            }
+                            System.out.println(fr.getActionPoint()+fr.getFileName());
                             if (fr.getActionPoint().equals("rename_second")) {
                                 destinationPath = Paths.get("server_storage/" + fr.getFileName());
-                                System.out.println(sourcePath.getFileName() + "->" + destinationPath.getFileName());
-                                Files.move(sourcePath, destinationPath);
+                               ctx.writeAndFlush(new FileRequest(null,"rename"));
+
+                                if (fr.getActionPoint().equals("rename_first")) {
+                                    System.out.println(fr.getActionPoint()+fr.getFileName());
+                                    sourcePath = Paths.get("server_storage/" + fr.getFileName());
+                                }
+
                             }
+                            System.out.println(sourcePath.getFileName() + "->" + destinationPath.getFileName());
+                                Files.move(sourcePath, destinationPath);
+
                             // }
                         }
                     }
