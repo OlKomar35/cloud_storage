@@ -8,6 +8,9 @@ public class JDBCConnect implements AuthService{
     private String login;
     private String pass;
     private String nick;
+    private String actionPoint="_auth true";
+
+
 
     public JDBCConnect(String login, String pass, int index) {
         try {
@@ -32,9 +35,9 @@ public class JDBCConnect implements AuthService{
                     }
 
                     if (nick != null) {
-                       // ClientHandler.sendMsg(new FileRequest("_auth true"));
+                      actionPoint="_auth true";
                     } else {
-                      //  ClientHandler.sendMsg(new FileRequest("_auth false"));
+                      actionPoint="_auth false";
                     }
 
                 } catch (SQLException e) {
@@ -48,6 +51,9 @@ public class JDBCConnect implements AuthService{
         }
     }
 
+    public String getActionPoint() {
+        return actionPoint;
+    }
 
     public static void connect() throws SQLException {
         connection = DriverManager.getConnection("jdbc:sqlite:clientsSQ.db");

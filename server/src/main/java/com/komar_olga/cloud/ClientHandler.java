@@ -31,13 +31,16 @@ public class ClientHandler extends ChannelInboundHandlerAdapter {
             if (fr.getActionPoint().equals("list")) {
                 ctx.writeAndFlush(new FileList("server_storage/"));
             } else {
-                if (fr.getFileName().startsWith("/auth")) {
+                if (fr.getActionPoint().equals("/auth")) {
+                    System.out.println(fr.getFileName());
                     String[] parts = fr.getFileName().split("\\s");
-                    login = parts[1];
-                    pass = parts[2];
-                    int index = Integer.parseInt(parts[3]);
+                    login = parts[0];
+                    pass = parts[1];
+                    int index = Integer.parseInt(parts[2]);
                     System.out.println(":) " + login + " " + pass + " " + index);
-                    new JDBCConnect(login, pass, index);
+                  JDBCConnect jdbcConnect=  new JDBCConnect(login, pass, index);
+                  String actionPoint=jdbcConnect.getActionPoint();
+                  ctx.writeAndFlush(new FileRequest(actionPoint,"auth"));
                 } else {
                     if (fr.getFileName() != null) {
                         if (Files.exists(Paths.get("server_storage/" + fr.getFileName()))) {

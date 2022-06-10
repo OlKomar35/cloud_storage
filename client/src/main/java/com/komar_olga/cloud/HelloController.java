@@ -315,9 +315,9 @@ public class HelloController implements Initializable {
     public void login() {
         if (!userLogin.getText().trim().isEmpty()) {
             if (!userPass.getText().trim().isEmpty()) {
-                String msg = String.format("/auth %s %s %s", userLogin.getText().trim(), userPass.getText().trim(), 0);
-                Network.sendMsg(new FileRequest(null,msg));
-                System.out.println(userLogin.getText().trim() + " " + userPass.getText().trim());
+                String msg = String.format("%s %s %s", userLogin.getText().trim(), userPass.getText().trim(), 0);
+                Network.sendMsg(new FileRequest(msg,"/auth"));
+                System.out.println(msg+userLogin.getText().trim() + " " + userPass.getText().trim());
             } else {
                 Alert alert = new Alert(Alert.AlertType.INFORMATION, "не верный логин или пароль");
                 alert.showAndWait();
