@@ -13,6 +13,11 @@ public class FileList extends AbstractMessage{
     private List<String> fileName=new ArrayList<>();
     private List<String> fileType=new ArrayList<>();
     private List<Long> fileSize= new ArrayList<>();
+    private String directory;
+
+    public String getDirectory() {
+        return directory;
+    }
 
     public List<String> getFileName() {
         return fileName;
@@ -29,12 +34,13 @@ public class FileList extends AbstractMessage{
 
     public FileList(String directory) throws IOException {
 
+        System.out.println(directory);
         List<String> filesNameArr = Files.list(Paths.get(directory))
                 .filter(p -> !Files.isDirectory(p))
                 .map(p -> p.getFileName().toString())
                 .collect(Collectors.toList());
-        filesNameArr.forEach(System.out::println);
-
+       filesNameArr.forEach(System.out::println);
+        this.directory=directory;
 
        // System.out.println(filesNameArr.size());
 

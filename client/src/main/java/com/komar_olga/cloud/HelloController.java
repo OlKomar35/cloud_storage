@@ -43,7 +43,7 @@ public class HelloController implements Initializable {
     @FXML
     private TableColumn<FileData, String> filesNameClient, filesTypeClient, filesSizeClient, filesNameServer, filesTypeServer, filesSizeServer;
     @FXML
-    private Label textSelectedRadio;
+    private Label textSelectedRadio,folderServer;
     @FXML
     private Button buttonRadio;
     @FXML
@@ -60,16 +60,16 @@ public class HelloController implements Initializable {
 
     public void initialize(URL location, ResourceBundle resources) {
 
-        try {
-            Network.start();
-            refreshClientData();
-            refreshServerData();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            //todo Проблемы с остановкой сервера
-            //Network.stop();
-        }
+//        try {
+        Network.start();
+//            refreshClientData();
+//            refreshServerData();
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        } finally {
+//            //todo Проблемы с остановкой сервера
+//            //Network.stop();
+//        }
         filesListClient.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<FileData>() {
             @Override
             public void changed(ObservableValue<? extends FileData> observable, FileData oldValue, FileData newValue) {
@@ -97,7 +97,7 @@ public class HelloController implements Initializable {
             AbstractMessage am = Network.readObject();
             if (am instanceof FileList) {
                 FileList fl = (FileList) am;
-
+                folderServer.setText(fl.getDirectory());
                 for (int i = 0; i < fl.getFileName().size(); i++) {
                     serverData.add(new FileData(fl.getFileName().get(i), fl.getFileType().get(i), fl.getFileSize().get(i) + " Byte"));
                 }
@@ -224,8 +224,12 @@ public class HelloController implements Initializable {
                     }
                     refreshClientData();
                 } catch (ClassNotFoundException | IOException e) {
-                    e.printStackTrace();
+                    Alert alert = new Alert(Alert.AlertType.INFORMATION, "Файл для скачивания не выбран");
+                    alert.showAndWait();
                 }
+            } else {
+                Alert alert = new Alert(Alert.AlertType.INFORMATION, "Файл");
+                alert.showAndWait();
             }
         }
         if (uploadRadio.isSelected()) {
@@ -234,10 +238,13 @@ public class HelloController implements Initializable {
                     Network.sendMsg(new FileMessage(Paths.get("client_storage/" + addressBarClient.getText()), "upload"));
                     filesListServer.getItems().clear();
                     refreshServerData();
+                    System.out.println(addressBarClient.getText());
+                    System.out.println("up");
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-                System.out.println(addressBarClient.getText());
+                filesListServer.getItems().clear();
+                refreshServerData();
                 addressBarClient.clear();
             } else {
                 Alert alert = new Alert(Alert.AlertType.INFORMATION, "Файла с таким именем нет");
@@ -257,14 +264,16 @@ public class HelloController implements Initializable {
                     alert.showAndWait();
                     addressBarClient.clear();
                 }
+
                 addressBarClient.clear();
             } else {
                 System.out.println(addressBarServer.getText());
                 Network.sendMsg(new FileRequest(addressBarServer.getText(), "delete"));
                 addressBarServer.clear();
                 filesListServer.getItems().clear();
-                refreshServerData();
 
+                System.out.println("del");
+                refreshServerData();
 
             }
         }
@@ -302,9 +311,7 @@ public class HelloController implements Initializable {
                 } catch (ClassNotFoundException | IOException e) {
                     e.printStackTrace();
                 }
-
                 filesListServer.getItems().clear();
-                refreshServerData();
                 //addressBarServer.clear();
             }
 
@@ -316,27 +323,33 @@ public class HelloController implements Initializable {
         if (!userLogin.getText().trim().isEmpty()) {
             if (!userPass.getText().trim().isEmpty()) {
                 String msg = String.format("%s %s %s", userLogin.getText().trim(), userPass.getText().trim(), 0);
-                Network.sendMsg(new FileRequest(msg,"/auth"));
-                System.out.println(msg+userLogin.getText().trim() + " " + userPass.getText().trim());
+                Network.sendMsg(new FileRequest(msg, "/auth"));
             } else {
-                Alert alert = new Alert(Alert.AlertType.INFORMATION, "не верный логин или пароль");
+                Alert alert = new Alert(Alert.AlertType.INFORMATION, "Не верный логин или пароль");
                 alert.showAndWait();
             }
         }
         try {
-
             AbstractMessage am = Network.readObject();
             if (am instanceof FileRequest) {
-                System.out.println(111111);
                 FileRequest fr = (FileRequest) am;
+                System.out.println(fr.getFileName() + "  " + fr.getActionPoint());
                 if (fr.getFileName().startsWith("_auth")) {
                     String[] parts = fr.getFileName().split("\\s");
                     boolean authIndex = Boolean.parseBoolean(parts[1]);
                     if (authIndex) {
+                        try {
+                            refreshClientData();
+                            refreshServerData();
+                            System.out.println("log");
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
                         loginPanel.setVisible(false);
                         loginPanel.setManaged(false);
                         cloudBox.setVisible(true);
                         cloudBox.setManaged(true);
+
                     } else {
                         Alert alert = new Alert(Alert.AlertType.INFORMATION, "не верный логин или пароль");
                         alert.showAndWait();
@@ -344,9 +357,7 @@ public class HelloController implements Initializable {
                 }
             }
 
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
+        } catch (ClassNotFoundException | IOException e) {
             e.printStackTrace();
         }
     }
@@ -383,16 +394,42 @@ public class HelloController implements Initializable {
         btnEnter.setOnAction(event -> {
             if (!singUpLogin.getText().trim().isEmpty()) {
                 if (!singUpPass.getText().trim().isEmpty()) {
-                    String msg = String.format("/auth %s %s %s", singUpLogin.getText().trim(), singUpPass.getText().trim(), 1);
-                    Network.sendMsg(new FileRequest(null, msg));
+                    String msg = String.format("%s %s %s", singUpLogin.getText().trim(), singUpPass.getText().trim(), 1);
+                    Network.sendMsg(new FileRequest(msg, "/auth"));
                     System.out.println(singUpLogin.getText().trim() + " " + singUpPass.getText().trim());
                 }
             }
-            newWindow.close();
-            loginPanel.setVisible(false);
-            loginPanel.setManaged(false);
-            cloudBox.setVisible(true);
-            cloudBox.setManaged(true);
+            try {
+                AbstractMessage am = Network.readObject();
+                if (am instanceof FileRequest) {
+                    FileRequest fr = (FileRequest) am;
+                    System.out.println(fr.getFileName() + "  " + fr.getActionPoint());
+                    if (fr.getFileName().startsWith("_auth")) {
+                        String[] parts = fr.getFileName().split("\\s");
+                        boolean authIndex = Boolean.parseBoolean(parts[1]);
+                        if (authIndex) {
+                            try {
+                                refreshClientData();
+                                refreshServerData();
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                            newWindow.close();
+                            loginPanel.setVisible(false);
+                            loginPanel.setManaged(false);
+                            cloudBox.setVisible(true);
+                            cloudBox.setManaged(true);
+
+                        } else {
+                            Alert alert = new Alert(Alert.AlertType.INFORMATION, "Клиент с таким логином уже существует");
+                            alert.showAndWait();
+                        }
+                    }
+                }
+
+            } catch (ClassNotFoundException | IOException e) {
+                e.printStackTrace();
+            }
 
         });
 

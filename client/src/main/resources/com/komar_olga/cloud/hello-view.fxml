@@ -98,7 +98,7 @@
                                         <Image url="@folder.png" />
                                     </image>
                                 </ImageView>
-                                <Label text="Server" textFill="#900f0f" underline="true">
+                                <Label fx:id="folderServer" text="Server" textFill="#900f0f" underline="true">
                                     <font>
                                         <Font name="Cambria Bold" size="20.0" />
                                     </font>

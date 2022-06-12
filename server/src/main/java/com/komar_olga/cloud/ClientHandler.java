@@ -8,10 +8,8 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.codec.serialization.ObjectEncoderOutputStream;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
+import java.io.IOException;
+import java.nio.file.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,6 +18,7 @@ public class ClientHandler extends ChannelInboundHandlerAdapter {
     private String clientName, login, pass;
     private static int newClientIndex = 1;
     private static ObjectEncoderOutputStream out;
+    private String clientFolder = "server_storage/";
 
 
     @Override
@@ -28,61 +27,74 @@ public class ClientHandler extends ChannelInboundHandlerAdapter {
         if (msg instanceof FileRequest) {
             Path sourcePath = null, destinationPath = null;
             FileRequest fr = (FileRequest) msg;
+            if (fr.getActionPoint().equals("/auth")) {
+                String[] parts = fr.getFileName().split("\\s");
+                login = parts[0];
+                pass = parts[1];
+                int index = Integer.parseInt(parts[2]);
+                JDBCConnect jdbcConnect = new JDBCConnect(login, pass, index);
+                String actionPoint = jdbcConnect.getActionPoint();
+                int id = jdbcConnect.getId();
+                String nick=jdbcConnect.getNick();
+                ctx.writeAndFlush(new FileRequest(actionPoint, "auth"));
+                clientFolder = "server_storage_id" + id + "/";
+                Path newFolderPath = Paths.get(clientFolder);
+                try {
+                    Files.createDirectories(newFolderPath);
+                    ctx.writeAndFlush(new FileList(clientFolder));
+                } catch (FileAlreadyExistsException e) {
+                    this.clientFolder = "server_storage_id" + id + "/";
+                    System.out.println("Каталог с таким именем уже существует");
+                } catch (IOException e) {
+                    System.out.println("что-то пошло не так при чтении");
+                }
+            }
             if (fr.getActionPoint().equals("list")) {
-                ctx.writeAndFlush(new FileList("server_storage/"));
+                ctx.writeAndFlush(new FileList(clientFolder));
             } else {
-                if (fr.getActionPoint().equals("/auth")) {
-                    System.out.println(fr.getFileName());
-                    String[] parts = fr.getFileName().split("\\s");
-                    login = parts[0];
-                    pass = parts[1];
-                    int index = Integer.parseInt(parts[2]);
-                    System.out.println(":) " + login + " " + pass + " " + index);
-                  JDBCConnect jdbcConnect=  new JDBCConnect(login, pass, index);
-                  String actionPoint=jdbcConnect.getActionPoint();
-                  ctx.writeAndFlush(new FileRequest(actionPoint,"auth"));
-                } else {
-                    if (fr.getFileName() != null) {
-                        if (Files.exists(Paths.get("server_storage/" + fr.getFileName()))) {
-                            if (fr.getActionPoint().equals("delete")) {
-                                Path path = Paths.get("server_storage/" + fr.getFileName());
-                                Files.delete(path);
-                            }
-                            if (fr.getActionPoint().equals("download")) {
-                                FileMessage fm = new FileMessage(Paths.get("server_storage/" + fr.getFileName()), "download");
-                                ctx.writeAndFlush(fm);
-                            }
-                            // todo не верно , нужно переделать
-                            if (fr.getActionPoint().startsWith("rename")) {
-                                System.out.println(fr.getActionPoint() + fr.getFileName());
-                                if (fr.getActionPoint().equals("rename_second")) {
-                                    destinationPath = Paths.get("server_storage/" + fr.getFileName());
-                                    ctx.writeAndFlush(new FileRequest(null, "rename"));
+                if (fr.getFileName() != null) {
+                    if (Files.exists(Paths.get(clientFolder + fr.getFileName()))) {
+                        if (fr.getActionPoint().equals("delete")) {
+                            Path path = Paths.get(clientFolder + fr.getFileName());
+                            System.out.println(clientFolder + fr.getFileName()+" del");
+                            Files.delete(path);
+                        }
+                        if (fr.getActionPoint().equals("download")) {
+                            FileMessage fm = new FileMessage(Paths.get(clientFolder + fr.getFileName()), "download");
+                            ctx.writeAndFlush(fm);
+                        }
+                        // todo не верно , нужно переделать
+                        if (fr.getActionPoint().startsWith("rename")) {
+                            System.out.println(fr.getActionPoint() + fr.getFileName());
+                            if (fr.getActionPoint().equals("rename_second")) {
+                                destinationPath = Paths.get(clientFolder + fr.getFileName());
+                                ctx.writeAndFlush(new FileRequest(null, "rename"));
 
-                                    if (fr.getActionPoint().equals("rename_first")) {
-                                        System.out.println(fr.getActionPoint() + fr.getFileName());
-                                        sourcePath = Paths.get("server_storage/" + fr.getFileName());
-                                    }
-
+                                if (fr.getActionPoint().equals("rename_first")) {
+                                    System.out.println(fr.getActionPoint() + fr.getFileName());
+                                    sourcePath = Paths.get(clientFolder + fr.getFileName());
                                 }
-                                System.out.println(sourcePath.getFileName() + "->" + destinationPath.getFileName());
-                                Files.move(sourcePath, destinationPath);
 
-                                // }
                             }
+                            System.out.println(sourcePath.getFileName() + "->" + destinationPath.getFileName());
+                            Files.move(sourcePath, destinationPath);
                         }
                     }
                 }
             }
-        } else {
-            if (msg instanceof FileMessage) {
-                FileMessage fm = (FileMessage) msg;
-                if (fm.getActionPoint().equals("upload")) {
-                    Files.write(Paths.get("server_storage/" + fm.getFileName()), fm.getData(), StandardOpenOption.CREATE);
-                }
+        }
+
+
+        if (msg instanceof FileMessage) {
+            FileMessage fm = (FileMessage) msg;
+            if (fm.getActionPoint().equals("upload")) {
+                Files.write(Paths.get(clientFolder + fm.getFileName()), fm.getData(), StandardOpenOption.CREATE);
+                System.out.println(clientFolder + fm.getFileName());
             }
         }
     }
+
+
 
 
     @Override
