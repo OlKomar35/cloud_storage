@@ -34,6 +34,7 @@ public class JDBCConnect implements AuthService {
                     actionPoint = "_auth true";
                 } catch (SQLiteException e) {
                     actionPoint = "_auth false";
+                    //todo отправить сообщение, что такой пользователь существует
                     //e.printStackTrace();
                 }
             } else {

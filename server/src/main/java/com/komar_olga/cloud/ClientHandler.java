@@ -2,6 +2,7 @@ package com.komar_olga.cloud;
 
 import com.komar_olga.cloud.model.FileList;
 import com.komar_olga.cloud.model.FileMessage;
+import com.komar_olga.cloud.model.FileRename;
 import com.komar_olga.cloud.model.FileRequest;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
@@ -25,8 +26,9 @@ public class ClientHandler extends ChannelInboundHandlerAdapter {
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
 
         if (msg instanceof FileRequest) {
-            Path sourcePath = null, destinationPath = null;
             FileRequest fr = (FileRequest) msg;
+
+            //авторизация
             if (fr.getActionPoint().equals("/auth")) {
                 String[] parts = fr.getFileName().split("\\s");
                 login = parts[0];
@@ -35,7 +37,7 @@ public class ClientHandler extends ChannelInboundHandlerAdapter {
                 JDBCConnect jdbcConnect = new JDBCConnect(login, pass, index);
                 String actionPoint = jdbcConnect.getActionPoint();
                 int id = jdbcConnect.getId();
-                String nick=jdbcConnect.getNick();
+                String nick = jdbcConnect.getNick();
                 ctx.writeAndFlush(new FileRequest(actionPoint, "auth"));
                 clientFolder = "server_storage_id" + id + "/";
                 Path newFolderPath = Paths.get(clientFolder);
@@ -49,36 +51,23 @@ public class ClientHandler extends ChannelInboundHandlerAdapter {
                     System.out.println("что-то пошло не так при чтении");
                 }
             }
+            // список файлов
             if (fr.getActionPoint().equals("list")) {
                 ctx.writeAndFlush(new FileList(clientFolder));
-            } else {
-                if (fr.getFileName() != null) {
-                    if (Files.exists(Paths.get(clientFolder + fr.getFileName()))) {
-                        if (fr.getActionPoint().equals("delete")) {
-                            Path path = Paths.get(clientFolder + fr.getFileName());
-                            System.out.println(clientFolder + fr.getFileName()+" del");
-                            Files.delete(path);
-                        }
-                        if (fr.getActionPoint().equals("download")) {
-                            FileMessage fm = new FileMessage(Paths.get(clientFolder + fr.getFileName()), "download");
-                            ctx.writeAndFlush(fm);
-                        }
-                        // todo не верно , нужно переделать
-                        if (fr.getActionPoint().startsWith("rename")) {
-                            System.out.println(fr.getActionPoint() + fr.getFileName());
-                            if (fr.getActionPoint().equals("rename_second")) {
-                                destinationPath = Paths.get(clientFolder + fr.getFileName());
-                                ctx.writeAndFlush(new FileRequest(null, "rename"));
+            }
 
-                                if (fr.getActionPoint().equals("rename_first")) {
-                                    System.out.println(fr.getActionPoint() + fr.getFileName());
-                                    sourcePath = Paths.get(clientFolder + fr.getFileName());
-                                }
-
-                            }
-                            System.out.println(sourcePath.getFileName() + "->" + destinationPath.getFileName());
-                            Files.move(sourcePath, destinationPath);
-                        }
+            if (fr.getFileName() != null) {
+                if (Files.exists(Paths.get(clientFolder + fr.getFileName()))) {
+                    // удаление
+                    if (fr.getActionPoint().equals("delete")) {
+                        Path path = Paths.get(clientFolder + fr.getFileName());
+                        System.out.println(clientFolder + fr.getFileName() + " del");
+                        Files.delete(path);
+                    }
+                    //скачивание
+                    if (fr.getActionPoint().equals("download")) {
+                        FileMessage fm = new FileMessage(Paths.get(clientFolder + fr.getFileName()), "download");
+                        ctx.writeAndFlush(fm);
                     }
                 }
             }
@@ -91,6 +80,18 @@ public class ClientHandler extends ChannelInboundHandlerAdapter {
                 Files.write(Paths.get(clientFolder + fm.getFileName()), fm.getData(), StandardOpenOption.CREATE);
                 System.out.println(clientFolder + fm.getFileName());
             }
+
+        }
+
+        if (msg instanceof FileRename) {
+            FileRename fr = (FileRename) msg;
+
+            System.out.println(clientFolder + fr.getSourcePath());
+            Path sourcePath = Paths.get(clientFolder + fr.getSourcePath());
+            System.out.println(clientFolder + fr.getDestinationPath());
+            Path destinationPath = Paths.get(clientFolder + fr.getDestinationPath());
+
+            Files.move(sourcePath, destinationPath);
         }
     }
 

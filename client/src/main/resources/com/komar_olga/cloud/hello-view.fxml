@@ -29,7 +29,7 @@
                                 </Label>
                             </children>
                         </HBox>
-                        <TableView fx:id="filesListClient" prefHeight="500.0" prefWidth="287.0">
+                        <TableView fx:id="filesListClient" prefHeight="500.0" prefWidth="287.0" >
                             <columns>
                                 <TableColumn fx:id="filesNameClient" prefWidth="147.0" text="name" />
                                 <TableColumn fx:id="filesTypeClient" prefWidth="44.0" text="type" />

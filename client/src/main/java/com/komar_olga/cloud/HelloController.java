@@ -43,7 +43,7 @@ public class HelloController implements Initializable {
     @FXML
     private TableColumn<FileData, String> filesNameClient, filesTypeClient, filesSizeClient, filesNameServer, filesTypeServer, filesSizeServer;
     @FXML
-    private Label textSelectedRadio,folderServer;
+    private Label textSelectedRadio, folderServer;
     @FXML
     private Button buttonRadio;
     @FXML
@@ -60,16 +60,14 @@ public class HelloController implements Initializable {
 
     public void initialize(URL location, ResourceBundle resources) {
 
-//        try {
-        Network.start();
-//            refreshClientData();
-//            refreshServerData();
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        } finally {
-//            //todo Проблемы с остановкой сервера
-//            //Network.stop();
-//        }
+        try {
+            Network.start();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        } finally {
+            //todo Проблемы с остановкой сервера
+            // Network.stop();
+        }
         filesListClient.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<FileData>() {
             @Override
             public void changed(ObservableValue<? extends FileData> observable, FileData oldValue, FileData newValue) {
@@ -228,7 +226,7 @@ public class HelloController implements Initializable {
                     alert.showAndWait();
                 }
             } else {
-                Alert alert = new Alert(Alert.AlertType.INFORMATION, "Файл");
+                Alert alert = new Alert(Alert.AlertType.INFORMATION, "Файл для скачивания не выбран");
                 alert.showAndWait();
             }
         }
@@ -241,6 +239,8 @@ public class HelloController implements Initializable {
                     System.out.println(addressBarClient.getText());
                     System.out.println("up");
                 } catch (IOException e) {
+                    Alert alert = new Alert(Alert.AlertType.INFORMATION, "Что-то пошло не так при скачивании файла");
+                    alert.showAndWait();
                     e.printStackTrace();
                 }
                 filesListServer.getItems().clear();
@@ -259,6 +259,7 @@ public class HelloController implements Initializable {
                     Files.delete(path);
                     filesListClient.getItems().clear();
                     refreshClientData();
+
                 } catch (IOException e) {
                     Alert alert = new Alert(Alert.AlertType.INFORMATION, "Файла с таким именем нет");
                     alert.showAndWait();
@@ -271,7 +272,6 @@ public class HelloController implements Initializable {
                 Network.sendMsg(new FileRequest(addressBarServer.getText(), "delete"));
                 addressBarServer.clear();
                 filesListServer.getItems().clear();
-
                 System.out.println("del");
                 refreshServerData();
 
@@ -295,28 +295,13 @@ public class HelloController implements Initializable {
                 }
                 addressBarClient.clear();
             } else {
-                //todo не верно переименовывыает
                 String address = filesListServer.getSelectionModel().getSelectedItem().getName() + "."
                         + filesListServer.getSelectionModel().getSelectedItem().getType();
-                Network.sendMsg(new FileRequest(address, "rename_second"));
-                try {
-                    AbstractMessage am = Network.readObject();
-                    if (am instanceof FileRequest) {
-                        FileRequest fr = (FileRequest) am;
-                        if (fr.getActionPoint().equals("rename")) {
-                            Network.sendMsg(new FileRequest(addressBarServer.getText(), "rename_first"));
-                            addressBarServer.clear();
-                        }
-                    }
-                } catch (ClassNotFoundException | IOException e) {
-                    e.printStackTrace();
-                }
+                Network.sendMsg(new FileRename(address, addressBarServer.getText()));
                 filesListServer.getItems().clear();
-                //addressBarServer.clear();
+                refreshServerData();
             }
-
         }
-
     }
 
     public void login() {

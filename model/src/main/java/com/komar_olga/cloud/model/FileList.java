@@ -9,11 +9,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class FileList extends AbstractMessage{
-    private List<String> fileName=new ArrayList<>();
-    private List<String> fileType=new ArrayList<>();
-    private List<Long> fileSize= new ArrayList<>();
+public class FileList extends AbstractMessage {
+    private List<String> fileName = new ArrayList<>();
+    private List<String> fileType = new ArrayList<>();
+    private List<Long> fileSize = new ArrayList<>();
     private String directory;
+
 
     public String getDirectory() {
         return directory;
@@ -33,26 +34,24 @@ public class FileList extends AbstractMessage{
 
 
     public FileList(String directory) throws IOException {
-
+        this.directory = directory;
         System.out.println(directory);
         List<String> filesNameArr = Files.list(Paths.get(directory))
                 .filter(p -> !Files.isDirectory(p))
                 .map(p -> p.getFileName().toString())
                 .collect(Collectors.toList());
-       filesNameArr.forEach(System.out::println);
-        this.directory=directory;
-
-       // System.out.println(filesNameArr.size());
+        filesNameArr.forEach(System.out::println);
+        System.out.println("------------------------------------------");
 
         for (int i = 0; i < filesNameArr.size(); i++) {
             FileChannel imageFileChannel = FileChannel.open(Path.of(directory + filesNameArr.get(i)));
             long size = imageFileChannel.size();
             String[] parts = filesNameArr.get(i).split("\\.");
-           // System.out.println(parts[0] + parts[1] + size);
-            fileName.add(parts[0]);
-            fileType.add(parts[1]);
-            fileSize.add(size);
-        }
+            this.fileName.add(parts[0]);
+            this.fileType.add(parts[1]);
+            this.fileSize.add(size);
 
+        }
+        System.out.println(fileName.size()+" "+filesNameArr.size());
     }
 }
