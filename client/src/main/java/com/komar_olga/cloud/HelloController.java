@@ -89,20 +89,20 @@ public class HelloController implements Initializable {
 
     }
 
-    private void refreshServerData() {
+    private void refreshServerData(FileList fl) {
         Network.sendMsg(new FileRequest(null, "list"));
-        try {
-            AbstractMessage am = Network.readObject();
-            if (am instanceof FileList) {
-                FileList fl = (FileList) am;
+//        try {
+//            AbstractMessage am = Network.readObject();
+//            if (am instanceof FileList) {
+//                FileList fl = (FileList) am;
                 folderServer.setText(fl.getDirectory());
                 for (int i = 0; i < fl.getFileName().size(); i++) {
                     serverData.add(new FileData(fl.getFileName().get(i), fl.getFileType().get(i), fl.getFileSize().get(i) + " Byte"));
                 }
-            }
-        } catch (ClassNotFoundException | IOException e) {
-            e.printStackTrace();
-        }
+//            }
+//        } catch (ClassNotFoundException | IOException e) {
+//            e.printStackTrace();
+//        }
 
         filesNameServer.setCellValueFactory(new PropertyValueFactory<FileData, String>("name"));
         filesTypeServer.setCellValueFactory(new PropertyValueFactory<FileData, String>("type"));
@@ -235,7 +235,16 @@ public class HelloController implements Initializable {
                 try {
                     Network.sendMsg(new FileMessage(Paths.get("client_storage/" + addressBarClient.getText()), "upload"));
                     filesListServer.getItems().clear();
-                    refreshServerData();
+                    try {
+                        AbstractMessage am = Network.readObject();
+                        if (am instanceof FileList) {
+                            FileList fl = (FileList) am;
+                            refreshServerData(fl);
+                        }
+                    } catch (ClassNotFoundException | IOException e) {
+                        e.printStackTrace();
+                    }
+
                     System.out.println(addressBarClient.getText());
                     System.out.println("up");
                 } catch (IOException e) {
@@ -244,7 +253,15 @@ public class HelloController implements Initializable {
                     e.printStackTrace();
                 }
                 filesListServer.getItems().clear();
-                refreshServerData();
+                try {
+                    AbstractMessage am = Network.readObject();
+                    if (am instanceof FileList) {
+                        FileList fl = (FileList) am;
+                        refreshServerData(fl);
+                    }
+                } catch (ClassNotFoundException | IOException e) {
+                    e.printStackTrace();
+                }
                 addressBarClient.clear();
             } else {
                 Alert alert = new Alert(Alert.AlertType.INFORMATION, "Файла с таким именем нет");
@@ -273,7 +290,15 @@ public class HelloController implements Initializable {
                 addressBarServer.clear();
                 filesListServer.getItems().clear();
                 System.out.println("del");
-                refreshServerData();
+                try {
+                    AbstractMessage am = Network.readObject();
+                    if (am instanceof FileList) {
+                        FileList fl = (FileList) am;
+                        refreshServerData(fl);
+                    }
+                } catch (ClassNotFoundException | IOException e) {
+                    e.printStackTrace();
+                }
 
             }
         }
@@ -299,7 +324,15 @@ public class HelloController implements Initializable {
                         + filesListServer.getSelectionModel().getSelectedItem().getType();
                 Network.sendMsg(new FileRename(address, addressBarServer.getText()));
                 filesListServer.getItems().clear();
-                refreshServerData();
+                try {
+                    AbstractMessage am = Network.readObject();
+                    if (am instanceof FileList) {
+                        FileList fl = (FileList) am;
+                        refreshServerData(fl);
+                    }
+                } catch (ClassNotFoundException | IOException e) {
+                    e.printStackTrace();
+                }
             }
         }
     }
@@ -325,7 +358,15 @@ public class HelloController implements Initializable {
                     if (authIndex) {
                         try {
                             refreshClientData();
-                            refreshServerData();
+                            try {
+                                AbstractMessage nm = Network.readObject();
+                                if (am instanceof FileList) {
+                                    FileList fl = (FileList) nm;
+                                    refreshServerData(fl);
+                                }
+                            } catch (ClassNotFoundException | IOException e) {
+                                e.printStackTrace();
+                            }
                             System.out.println("log");
                         } catch (IOException e) {
                             e.printStackTrace();
@@ -372,7 +413,6 @@ public class HelloController implements Initializable {
         newWindow.setTitle("Window for sing up");
         newWindow.setScene(secondScene);
         newWindow.initModality(Modality.APPLICATION_MODAL);
-        //todo сделать окно stage родительским , чтобы newWindow  его блокировало
         newWindow.show();
 
 
@@ -395,7 +435,15 @@ public class HelloController implements Initializable {
                         if (authIndex) {
                             try {
                                 refreshClientData();
-                                refreshServerData();
+                                try {
+                                    AbstractMessage nm = Network.readObject();
+                                    if (am instanceof FileList) {
+                                        FileList fl = (FileList) nm;
+                                        refreshServerData(fl);
+                                    }
+                                } catch (ClassNotFoundException | IOException e) {
+                                    e.printStackTrace();
+                                }
                             } catch (IOException e) {
                                 e.printStackTrace();
                             }
@@ -406,6 +454,7 @@ public class HelloController implements Initializable {
                             cloudBox.setManaged(true);
 
                         } else {
+                            //todo  ник не обновляется
                             Alert alert = new Alert(Alert.AlertType.INFORMATION, "Клиент с таким логином уже существует");
                             alert.showAndWait();
                         }

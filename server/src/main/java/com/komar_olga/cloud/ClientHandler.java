@@ -63,6 +63,7 @@ public class ClientHandler extends ChannelInboundHandlerAdapter {
                         Path path = Paths.get(clientFolder + fr.getFileName());
                         System.out.println(clientFolder + fr.getFileName() + " del");
                         Files.delete(path);
+                        ctx.writeAndFlush(new FileList(clientFolder));
                     }
                     //скачивание
                     if (fr.getActionPoint().equals("download")) {
@@ -79,6 +80,7 @@ public class ClientHandler extends ChannelInboundHandlerAdapter {
             if (fm.getActionPoint().equals("upload")) {
                 Files.write(Paths.get(clientFolder + fm.getFileName()), fm.getData(), StandardOpenOption.CREATE);
                 System.out.println(clientFolder + fm.getFileName());
+                ctx.writeAndFlush(new FileList(clientFolder));
             }
 
         }
@@ -92,6 +94,7 @@ public class ClientHandler extends ChannelInboundHandlerAdapter {
             Path destinationPath = Paths.get(clientFolder + fr.getDestinationPath());
 
             Files.move(sourcePath, destinationPath);
+            ctx.writeAndFlush(new FileList(clientFolder));
         }
     }
 
