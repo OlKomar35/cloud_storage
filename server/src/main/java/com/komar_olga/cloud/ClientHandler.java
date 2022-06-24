@@ -51,10 +51,6 @@ public class ClientHandler extends ChannelInboundHandlerAdapter {
                     System.out.println("что-то пошло не так при чтении");
                 }
             }
-            // список файлов
-            if (fr.getActionPoint().equals("list")) {
-                ctx.writeAndFlush(new FileList(clientFolder));
-            }
 
             if (fr.getFileName() != null) {
                 if (Files.exists(Paths.get(clientFolder + fr.getFileName()))) {
@@ -88,7 +84,7 @@ public class ClientHandler extends ChannelInboundHandlerAdapter {
         if (msg instanceof FileRename) {
             FileRename fr = (FileRename) msg;
 
-            System.out.println(clientFolder + fr.getSourcePath());
+            System.out.print(clientFolder + fr.getSourcePath()+"->");
             Path sourcePath = Paths.get(clientFolder + fr.getSourcePath());
             System.out.println(clientFolder + fr.getDestinationPath());
             Path destinationPath = Paths.get(clientFolder + fr.getDestinationPath());
@@ -97,9 +93,6 @@ public class ClientHandler extends ChannelInboundHandlerAdapter {
             ctx.writeAndFlush(new FileList(clientFolder));
         }
     }
-
-
-
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {

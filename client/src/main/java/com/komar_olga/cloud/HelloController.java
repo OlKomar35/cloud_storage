@@ -21,6 +21,7 @@ import javafx.scene.text.Font;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 
+
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
@@ -56,6 +57,7 @@ public class HelloController implements Initializable {
     private String indicator = "client";
     String fileSeparator = File.separator;
 
+
     @Override
 
     public void initialize(URL location, ResourceBundle resources) {
@@ -90,20 +92,10 @@ public class HelloController implements Initializable {
     }
 
     private void refreshServerData(FileList fl) {
-        Network.sendMsg(new FileRequest(null, "list"));
-//        try {
-//            AbstractMessage am = Network.readObject();
-//            if (am instanceof FileList) {
-//                FileList fl = (FileList) am;
-                folderServer.setText(fl.getDirectory());
-                for (int i = 0; i < fl.getFileName().size(); i++) {
-                    serverData.add(new FileData(fl.getFileName().get(i), fl.getFileType().get(i), fl.getFileSize().get(i) + " Byte"));
-                }
-//            }
-//        } catch (ClassNotFoundException | IOException e) {
-//            e.printStackTrace();
-//        }
-
+        folderServer.setText(fl.getDirectory());
+        for (int i = 0; i < fl.getFileName().size(); i++) {
+            serverData.add(new FileData(fl.getFileName().get(i), fl.getFileType().get(i), fl.getFileSize().get(i) + " Byte"));
+        }
         filesNameServer.setCellValueFactory(new PropertyValueFactory<FileData, String>("name"));
         filesTypeServer.setCellValueFactory(new PropertyValueFactory<FileData, String>("type"));
         filesSizeServer.setCellValueFactory(new PropertyValueFactory<FileData, String>("size"));
@@ -217,13 +209,16 @@ public class HelloController implements Initializable {
                     if (am instanceof FileMessage) {
                         FileMessage fm = (FileMessage) am;
                         if (fm.getActionPoint().equals("download")) {
+
                             Files.write(Paths.get("client_storage/" + fm.getFileName()), fm.getData(), StandardOpenOption.CREATE);
+
                         }
                     }
                     refreshClientData();
                 } catch (ClassNotFoundException | IOException e) {
                     Alert alert = new Alert(Alert.AlertType.INFORMATION, "Файл для скачивания не выбран");
                     alert.showAndWait();
+
                 }
             } else {
                 Alert alert = new Alert(Alert.AlertType.INFORMATION, "Файл для скачивания не выбран");
@@ -234,17 +229,6 @@ public class HelloController implements Initializable {
             if (!addressBarClient.getText().equals(null)) {
                 try {
                     Network.sendMsg(new FileMessage(Paths.get("client_storage/" + addressBarClient.getText()), "upload"));
-                    filesListServer.getItems().clear();
-                    try {
-                        AbstractMessage am = Network.readObject();
-                        if (am instanceof FileList) {
-                            FileList fl = (FileList) am;
-                            refreshServerData(fl);
-                        }
-                    } catch (ClassNotFoundException | IOException e) {
-                        e.printStackTrace();
-                    }
-
                     System.out.println(addressBarClient.getText());
                     System.out.println("up");
                 } catch (IOException e) {
@@ -253,10 +237,11 @@ public class HelloController implements Initializable {
                     e.printStackTrace();
                 }
                 filesListServer.getItems().clear();
+               // Network.sendMsg(new FileRequest(null, "list"));
                 try {
-                    AbstractMessage am = Network.readObject();
-                    if (am instanceof FileList) {
-                        FileList fl = (FileList) am;
+                    AbstractMessage listRefresh = Network.readObject();
+                    if (listRefresh instanceof FileList) {
+                        FileList fl = (FileList) listRefresh;
                         refreshServerData(fl);
                     }
                 } catch (ClassNotFoundException | IOException e) {
@@ -291,9 +276,9 @@ public class HelloController implements Initializable {
                 filesListServer.getItems().clear();
                 System.out.println("del");
                 try {
-                    AbstractMessage am = Network.readObject();
-                    if (am instanceof FileList) {
-                        FileList fl = (FileList) am;
+                    AbstractMessage listRefresh = Network.readObject();
+                    if (listRefresh instanceof FileList) {
+                        FileList fl = (FileList) listRefresh;
                         refreshServerData(fl);
                     }
                 } catch (ClassNotFoundException | IOException e) {
@@ -317,6 +302,7 @@ public class HelloController implements Initializable {
                     Alert alert = new Alert(Alert.AlertType.INFORMATION, "Не верное действие");
                     alert.showAndWait();
                     addressBarClient.clear();
+
                 }
                 addressBarClient.clear();
             } else {
@@ -325,13 +311,13 @@ public class HelloController implements Initializable {
                 Network.sendMsg(new FileRename(address, addressBarServer.getText()));
                 filesListServer.getItems().clear();
                 try {
-                    AbstractMessage am = Network.readObject();
-                    if (am instanceof FileList) {
-                        FileList fl = (FileList) am;
+                    AbstractMessage listRefresh = Network.readObject();
+                    if (listRefresh instanceof FileList) {
+                        FileList fl = (FileList) listRefresh;
                         refreshServerData(fl);
                     }
                 } catch (ClassNotFoundException | IOException e) {
-                    e.printStackTrace();
+                   e.printStackTrace();
                 }
             }
         }
@@ -358,14 +344,11 @@ public class HelloController implements Initializable {
                     if (authIndex) {
                         try {
                             refreshClientData();
-                            try {
-                                AbstractMessage nm = Network.readObject();
-                                if (am instanceof FileList) {
-                                    FileList fl = (FileList) nm;
-                                    refreshServerData(fl);
-                                }
-                            } catch (ClassNotFoundException | IOException e) {
-                                e.printStackTrace();
+                            Network.sendMsg(new FileRequest(null, "list"));
+                            AbstractMessage listRefresh = Network.readObject();
+                            if (listRefresh instanceof FileList) {
+                                FileList fl = (FileList) listRefresh;
+                                refreshServerData(fl);
                             }
                             System.out.println("log");
                         } catch (IOException e) {
@@ -435,14 +418,11 @@ public class HelloController implements Initializable {
                         if (authIndex) {
                             try {
                                 refreshClientData();
-                                try {
-                                    AbstractMessage nm = Network.readObject();
-                                    if (am instanceof FileList) {
-                                        FileList fl = (FileList) nm;
-                                        refreshServerData(fl);
-                                    }
-                                } catch (ClassNotFoundException | IOException e) {
-                                    e.printStackTrace();
+                                Network.sendMsg(new FileRequest(null, "list"));
+                                AbstractMessage nm = Network.readObject();
+                                if (am instanceof FileList) {
+                                    FileList fl = (FileList) nm;
+                                    refreshServerData(fl);
                                 }
                             } catch (IOException e) {
                                 e.printStackTrace();

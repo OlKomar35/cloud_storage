@@ -6,6 +6,7 @@ module com.komar_olga.cloud {
     requires com.komar_olga.cloud.model;
 
 
+
     opens com.komar_olga.cloud to javafx.fxml;
     exports com.komar_olga.cloud;
 }

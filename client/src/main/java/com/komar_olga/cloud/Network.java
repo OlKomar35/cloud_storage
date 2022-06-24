@@ -7,12 +7,14 @@ import io.netty.handler.codec.serialization.ObjectEncoderOutputStream;
 import java.io.IOException;
 import java.net.Socket;
 
+
 public class Network {
     private static Socket socket;
     private static final String HOST = "localhost";
     private static final int PORT = 8189;
     private static ObjectEncoderOutputStream out;
     private static ObjectDecoderInputStream in;
+
 
     public static void start() {
         try {
