@@ -58,7 +58,7 @@
 
 
 
-![Image block diagram](https://github.com/OlKomar35/shulte_table/blob/master/images_for_project/shulte_diagram.png)
+![Image block diagram](https://github.com/OlKomar35/cloud_storage/blob/master/images_for_project/cloud_server.png)
 
 <a href="#оглавление"><g-emoji class="g-emoji" alias="arrow_up" fallback-src="https://github.githubassets.com/images/icons/emoji/unicode/2b06.png">⬆️</g-emoji>Оглавление</a>
 
