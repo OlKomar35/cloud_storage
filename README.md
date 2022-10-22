@@ -62,21 +62,3 @@
 
 <a href="#оглавление"><g-emoji class="g-emoji" alias="arrow_up" fallback-src="https://github.githubassets.com/images/icons/emoji/unicode/2b06.png">⬆️</g-emoji>Оглавление</a>
 
-<h2 dir="auto"><a id="дополнение" class="anchor" aria-hidden="true" href="#дополнение"><svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"></svg></a>
-Дополнение</h2>
-
-<h3>Меню программы</h3>
-
-![Image for project](https://github.com/OlKomar35/shulte_table/blob/master/images_for_project/screen5.jpg)
-
-<h3>Три уровня сложности</h3>
-<p> На данном этапе реализованн один уровень сложности, от 1 до 25 (leval easy)</p>
-
-![Image for project](https://github.com/OlKomar35/shulte_table/blob/master/images_for_project/screen4.jpg)
-
-<h3>Вывод результата</h3>
-
-![Image for project](https://github.com/OlKomar35/shulte_table/blob/master/images_for_project/screen3.jpg)
-
-<a href="#оглавление"><g-emoji class="g-emoji" alias="arrow_up" fallback-src="https://github.githubassets.com/images/icons/emoji/unicode/2b06.png">⬆️</g-emoji>Оглавление</a>
-
